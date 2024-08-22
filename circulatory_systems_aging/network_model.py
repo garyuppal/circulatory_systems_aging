@@ -1,82 +1,127 @@
 import numpy as np
 import torch 
-
-#! NOTES:
-#* want directed edges
+# from utils import pickle_save
 
 
-
-# assign nodes as functional or not
-#* simulate for 10000 networks...
-
-#! would gpu and/or jit speed things up??
-
-class NetworkDynamics:
-    def __init__(self, adjacency_matrix, initial_nonfunctional_fraction, prob_death, prob_repair, tau):
-        self.p_death = prob_death
-        self.p_repair = prob_repair
-        self.adj_mat = adjacency_matrix
-        self.n_nodes = adjacency_matrix.shape[0]
-        self.eta = initial_nonfunctional_fraction
-
-        state = np.ones(self.n_nodes)
-        r = np.random.rand(self.n_nodes)
-        state[r < self.eta] = 0
-        self.state = state
+class NetworkAging:
+    def __init__(self, 
+                 adjacency_matrix,
+                 num_organisms,
+                 init_nonfunctional,
+                 prob_death,
+                 prob_repair):
+        self.num_nodes = adjacency_matrix.shape[0]
+        self.num_organisms = num_organisms
+        self.eta = init_nonfunctional
+        self.pi_death = prob_death
+        self.pi_repair = prob_repair
+        self.adjmat = adjacency_matrix
+        self.number_neighbors = self.adjmat.sum(axis=0)
         
-        self.num_connected = self.adj_mat.sum(axis=0)
-        self.tau_threshold = tau # TODO: not sure we need this here...
+        self.init_state()
+        self.fraction_alive = None
+        self.survival = None
+        self.mortality = None
     
-    def age_network(self):
-        # kill nodes with probability p_death
-        rd = np.random.rand(self.n_nodes)
-        self.state[rd < self.p_death] = 0
+    def init_state(self):
+        self.state = np.ones((self.num_organisms, self.num_nodes))
+        r = np.random.rand(self.num_organisms, self.num_nodes)
+        self.state[r < self.eta] = 0
 
-        # reactivate nodes with probability p_recover
-        rr = np.random.rand(self.n_nodes)
-        self.state[rr < self.p_repair] = 1
+    def age_network(self, n_time, tau=0.01, verbose=-1):
+        self.fraction_alive = np.zeros((n_time, self.num_organisms))
 
-        # kill interdependent nodes with majority dead neighbors
-        functional_connections = (self.state[:,None]*self.adj_mat).sum(axis=0)
-        fraction_functional_connections = functional_connections/(self.num_connected + 1e-20) # TODO: what to do with 0/0??
+        for i in range(n_time):
+            # kill nodes
+            rk = np.random.rand(self.num_organisms, self.num_nodes)
+            self.state[rk < self.pi_death] = 0
+            # repair nodes
+            rr = np.random.rand(self.num_organisms, self.num_nodes)
+            self.state[rr < self.pi_repair] = 1
+            # cascade failures
+            num_active_neighbors = self.state @ self.adjmat
+            frac_active_neighbors = (num_active_neighbors + 1e-20)/(self.number_neighbors + 1e-20)
+            self.state[frac_active_neighbors < 0.5] = 0
 
-        self.state[fraction_functional_connections < 0.5] = 0        
+            self.fraction_alive[i,:] = (np.sum(self.state, axis=1)/self.num_nodes)
 
-        return self.state
-
-
-class NetworkDynamicsVectorized:
-    def __init__(self, n_population, adjacency_matrix, initial_nonfunctional_fraction, prob_death, prob_repair, tau):
-        self.n_population = n_population
-        self.p_death = prob_death
-        self.p_repair = prob_repair
-        self.adj_mat = adjacency_matrix
-        self.n_nodes = adjacency_matrix.shape[0]
-        self.eta = initial_nonfunctional_fraction
-
-        state = np.ones((self.n_population, self.n_nodes))
-        r = np.random.rand(self.n_population, self.n_nodes)
-        state[r < self.eta] = 0
-        self.state = state
+            if verbose > 0:
+                if i % verbose == 0:
+                    print(f"epoch {i} of {n_time}")
         
-        self.num_connected = self.adj_mat.sum(axis=0)
-        self.tau_threshold = tau # TODO: not sure we need this here...
+        # compute survival and mortality curves...
+        survival = (self.fraction_alive > tau).sum(axis=1)
+        dtimes = np.argmax(self.fraction_alive < tau, axis=0)
+        delta_t = max(int(0.25*np.std(dtimes)), 1)
+        mortality = np.zeros(n_time-delta_t)
+        for i in range(n_time-delta_t):
+            mortality[i] = -(survival[i+delta_t] - survival[i])/(survival[i]*delta_t)
+        
+        self.survival = survival
+        self.mortality = mortality
+        print("done")
+        return self.fraction_alive, self.survival, self.mortality
+
+
+# pytorch module
+class NetworkAgingTorch:
+    def __init__(self, 
+                 adjacency_matrix,
+                 num_organisms,
+                 init_nonfunctional,
+                 prob_death,
+                 prob_repair,
+                 device):
+        self.device = device
+        self.num_nodes = adjacency_matrix.shape[0]
+        self.num_organisms = num_organisms
+        self.eta = init_nonfunctional
+        self.pi_death = prob_death
+        self.pi_repair = prob_repair
+        self.adjmat = torch.from_numpy(adjacency_matrix).to(dtype=torch.float, device=device)
+        self.number_neighbors = self.adjmat.sum(dim=0)
+        
+        self.init_state()
+        self.fraction_alive = None
+        self.survival = None
+        self.mortality = None
     
-    def age_network(self):
-        # kill nodes with probability p_death
-        rd = np.random.rand(self.n_population, self.n_nodes)
-        self.state[rd < self.p_death] = 0
+    def init_state(self):
+        self.state = torch.ones((self.num_organisms, self.num_nodes), dtype=torch.float, device=self.device)
+        r = torch.rand(self.num_organisms, self.num_nodes, device=self.device)
+        self.state[r < self.eta] = 0
 
-        # reactivate nodes with probability p_recover
-        rr = np.random.rand(self.n_population, self.n_nodes)
-        self.state[rr < self.p_repair] = 1
+    def age_network(self, n_time, tau=0.01, verbose=-1):
+        self.fraction_alive = torch.zeros((n_time, self.num_organisms), dtype=torch.float, device=self.device)
 
-        # kill interdependent nodes with majority dead neighbors
-        functional_connections = self.state @ self.adj_mat 
-        # (self.state[:,None]*self.adj_mat).sum(axis=0)
-        fraction_functional_connections = functional_connections/(self.num_connected[None,:] + 1e-20) # TODO: what to do with 0/0?? -> =1? 
+        for i in range(n_time):
+            # kill nodes
+            rk = torch.rand(self.num_organisms, self.num_nodes, device=self.device)
+            self.state[rk < self.pi_death] = 0
+            # repair nodes
+            rr = torch.rand(self.num_organisms, self.num_nodes, device=self.device)
+            self.state[rr < self.pi_repair] = 1
+            # cascade failures
+            num_active_neighbors = self.state @ self.adjmat
+            frac_active_neighbors = (num_active_neighbors + 1e-20)/(self.number_neighbors + 1e-20)
+            self.state[frac_active_neighbors < 0.5] = 0
 
-        self.state[fraction_functional_connections < 0.5] = 0        
+            self.fraction_alive[i,:] = (torch.sum(self.state, dim=1)/self.num_nodes)
 
-        return self.state
-
+            if verbose > 0:
+                if i % verbose == 0:
+                    print(f"epoch {i} of {n_time}")
+        
+        # compute survival and mortality curves...
+        survival = (self.fraction_alive > tau).sum(dim=1).cpu().detach().clone().numpy()
+        dtimes = np.argmax(self.fraction_alive.cpu().detach().clone().numpy() < tau, axis=0)
+        delta_t = max(int(0.25*np.std(dtimes)), 1)
+        mortality = np.zeros(n_time-delta_t)
+        for i in range(n_time-delta_t):
+            mortality[i] = -(survival[i+delta_t] - survival[i])/(survival[i]*delta_t)
+        
+        self.survival = survival
+        self.mortality = mortality
+        print("done")
+        return self.survival, self.mortality
+    
