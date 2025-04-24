@@ -1,2 +1,11 @@
 circulatory_systems_aging/tests/
 circulatory_systems_aging/experiments/
+circulatory_systems_aging/__pycache__/
+circulatory_systems_aging/.nextflow/
+circulatory_systems_aging/K1_gamma_0/
+circulatory_systems_aging/K2_gamma_0/
+circulatory_systems_aging/work/
+circulatory_systems_aging/.nextflow*
+circulatory_systems_aging/run_fig2_cases_OGSCRIPT.sh
+circulatory_systems_aging/sim_paths.txt
+circulatory_systems_aging/.ipynb_checkpoints/
