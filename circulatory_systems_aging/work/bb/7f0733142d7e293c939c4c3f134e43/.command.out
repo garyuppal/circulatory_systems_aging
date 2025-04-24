@@ -1,0 +1,5 @@
+...running gamma = 0, k = 1
+Warning: General:outdir is not in the default configuration. Adding it.
+Warning: mixing_gamma is not in the General section. Adding it.
+Warning: Goods:hill_coefficient is not in the default configuration. Adding it.
+Warning: Toxins:hill_coefficient is not in the default configuration. Adding it.

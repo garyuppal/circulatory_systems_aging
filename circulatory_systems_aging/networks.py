@@ -1,8 +1,6 @@
 import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-import scipy
 
 
 def get_connected_line_network(n):
@@ -63,22 +61,32 @@ def get_erdos_reyni_random_network(n,p):
     return adjmat
 
 
-def get_barabasi_albert_network(n,m):
-    graph = nx.barabasi_albert_graph(n,m)
-    a = nx.adjacency_matrix(graph).todense()
-    # make directed...
+def get_directed_SFN(n,m):
+    anet = np.zeros((n,n))
+    # start with m nodes
+    anet[:m,:m] = 1
+
+    # zero diagonal
     for i in range(n):
-        for j in range(i):
-            if (a[i,j] == 1) and (a[j,i] == 1):
-                r = np.random.rand()
-                if r < 0.5:
-                    a[i,j] = 0
-                else:
-                    a[j,i] = 0
-    return a
+        anet[i,i] = 0
+
+    # for each new node, add m in and out connections based on degree
+    for k in range(m,n):
+        # use choice method
+        indegrees = anet.sum(axis=0)
+        outdegrees = anet.sum(axis=1)
+        total = anet.sum()
+
+        # depend on m preexisting nodes with prob outdegrees
+        other_nodes = np.random.choice(k, size=m, replace=False, p=outdegrees[:k]/total)
+        anet[other_nodes,k] = 1
+        
+        # others depend on k with prob indegrees
+        other_nodes = np.random.choice(k, size=m, replace=False, p=indegrees[:k]/total)
+        anet[k,other_nodes] = 1
+    return anet
 
 
-# TODO: vis directed network..
 def vis_network(ax, adjmat):
     graph = nx.Graph()
     n = adjmat.shape[0]
