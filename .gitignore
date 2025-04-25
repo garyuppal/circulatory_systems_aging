@@ -9,3 +9,4 @@ circulatory_systems_aging/.nextflow*
 circulatory_systems_aging/run_fig2_cases_OGSCRIPT.sh
 circulatory_systems_aging/sim_paths.txt
 circulatory_systems_aging/.ipynb_checkpoints/
+circulatory_systems_aging/compute_mort_dt1_smoothed.ipynb

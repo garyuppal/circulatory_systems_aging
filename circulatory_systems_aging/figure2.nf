@@ -33,6 +33,7 @@ process simulate {
 
     output:
     path("flow_results/K${k}_gamma_${gamma}", emit: result_dir)
+    publishDir 'results/', mode: 'copy', pattern: "flow_results/*"
 
     script:
     """
@@ -52,8 +53,11 @@ process generate_plot {
     path sim_dirs
     path 'plot_figure2.ipynb'
     path 'utils.py'
-    // output:
-    // path "figure2_plot.png"
+
+    output:
+    file '*'
+    publishDir 'results/', mode: 'copy'
+
 
     script:
     

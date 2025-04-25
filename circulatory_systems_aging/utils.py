@@ -4,6 +4,7 @@ import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from scipy.signal import savgol_filter
 
 
 def get_device():
@@ -74,3 +75,41 @@ def visualize_flow_simulation(state, oidx=0, ghosts=True):
         return gline,
     ani = animation.FuncAnimation(fig, update, frames=gfield.shape[0], blit=False)
     plt.show()
+
+
+def calc_mort(res, w=11, p=1):
+    # TODO: use deltaT from std for w???
+    pvt = res["pop_v_time"]
+    times = res["times"]
+    age_delay = res["age_delay"]
+
+    nx = pvt.shape[1]
+    alive_threshold = 0.01*nx
+
+    surv = (pvt > alive_threshold).sum(axis=1)
+
+    num_organisms = pvt[0,:].max()
+
+    surv95_threshold = 0.05 * num_organisms
+    surviving_indices = np.where(surv > surv95_threshold)[0]
+
+    if surviving_indices.size > 0:
+        t95 = times[surviving_indices[-1]] - age_delay  # Last timepoint with >5% survival
+    else:
+        t95 = np.inf  # If survival never drops below 5%, set to infinity
+
+    astart = np.argmax(times > age_delay)  # Start index after aging begins
+    at95 = np.argmax(times > (t95 + age_delay)) if np.isfinite(t95) else len(times)
+
+
+    s95 = surv[astart:at95]
+
+    dt = (times[1] - times[0])
+
+    smoothed = savgol_filter(s95, window_length=w, polyorder=p)
+    dsurvdt = savgol_filter(s95, window_length=w, polyorder=p, deriv=1, delta=dt)
+    mort = -dsurvdt/smoothed
+
+    normmortplot = mort / np.nanmean(mort)
+    t = np.linspace(0,1, len(mort))
+    return t, mort, normmortplot

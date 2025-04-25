@@ -226,7 +226,7 @@ class FlowAgingModelTorch:
             t95, surv, mort, times_mort = self.calc_surv_mort(age_delay, times, pop_v_time)
             apvt = np.mean(pop_v_time, axis=1)
             res = {"t95": t95, "apvt": apvt, "surv": surv, "mort": mort, "pop_v_time": pop_v_time, 
-                   "times": times, "times_mort": times_mort}
+                   "times": times, "times_mort": times_mort, "age_delay": age_delay}
         else:
             res = None
         if save_full:
