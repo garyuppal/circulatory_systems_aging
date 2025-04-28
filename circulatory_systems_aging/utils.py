@@ -5,6 +5,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from scipy.signal import savgol_filter
+from scipy.optimize import curve_fit
 
 
 def get_device():
@@ -113,3 +114,17 @@ def calc_mort(res, w=11, p=1):
     normmortplot = mort / np.nanmean(mort)
     t = np.linspace(0,1, len(mort))
     return t, mort, normmortplot
+
+def relu_type(x, x_threshold, slope):
+    # Define the ReLU-type function
+    return np.where(x < x_threshold, 0, slope * (x - x_threshold))
+
+
+def fit_relu(x_data,y_data):
+    ### write function to fit data
+    initial_guess = [x_data.mean(), 1.0]  # Initial guess for [x_threshold, slope]
+    popt, _ = curve_fit(relu_type, x_data, y_data, p0=initial_guess)
+
+    # Extract fitted parameters
+    fitted_x_threshold, fitted_slope = popt
+    return fitted_x_threshold, fitted_slope
