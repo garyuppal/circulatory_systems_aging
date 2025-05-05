@@ -18,4 +18,5 @@ circulatory_systems_aging/run_fig2_vs_N.sh
 circulatory_systems_aging/flow_results_T20/
 circulatory_systems_aging/_old
 circulatory_systems_aging/nextflow_scripts/
-circulatory_systems_aging/output/
+circulatory_systems_aging/output/*
+!circulatory_systems_aging/output/empirical_simulation_parameters/empirical_fitgammas.csv
