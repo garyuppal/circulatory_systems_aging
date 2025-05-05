@@ -61,29 +61,51 @@ python circulatory_flow_model.py --config <config_file.cfg>
 ```
 
 ## Running the analyses in the paper
-To reproduce the four figures in the paper, follow the steps below. Each figure has...
+To reproduce the figures presented in the paper, run the simulation scripts located in the `scripts/` directory and then generate the corresponding plots using the associated Jupyter notebooks.
 
-Model given config files, with overriding parameters for those we vary...
+Note, all scripts should be run from the scripts directory. This requirement is in place to match relative pathing of the root scripts/settings.sh environment file, from which all other paths are defined relatively.
 
-### Network aging analysis (figure 1)
-Run the model simulations for each type of network analyzed in the paper:
+Each script executes a model using predefined configuration files (in .cfg format), with certain parameters overridden directly on the command line. These overrides allow for systematic exploration of model behavior across a range of biologically relevant values.
+
+Below are the instructions for each figure:
+
+### Figure 1 - Network aging analysis
+This figure explores how network topology influences aging dynamics.
+1. Run the model simulations for each type of network analyzed in the paper:
 ```
 bash run_figure1_sims.sh
 ```
-Plot the results using the `plot_figure1.ipynb` notebook.
+2. Visualize the results: Open and run the `plot_figure1.ipynb` notebook.
 
-### Circulatory flow model analysis (figure 2)
-Run the model simulations for each type of network analyzed in the paper:
+### Figure 2 - Circulatory flow model: effects of hill constants $K$ and mixing factor $\gamma$
+1. Run the model simulations:
 ```
 bash run_figure2_sims.sh
 ```
-Plot the results using the `plot_figure2.ipynb` notebook.
+2. Plot the results using the `plot_figure2.ipynb` notebook.
 
-### Circulatory flow model analysis (figure 3)
-Run the model simulations for each type of network analyzed in the paper:
+### Figure 3- Circulatory flow model: effects of diffusion and flow rate
+1. Run the model simulations:
 ```
 bash run_figure3_sims.sh
 ```
-Plot the results using the `plot_figure3.ipynb` notebook.
+2. Plot the results using the `plot_figure3.ipynb` notebook.
 
-### Fitting to empirical data (figure 4)
+### Figure 4 - Fitting the model to empirical data
+1. Run the model over an initial range of base parameters
+```
+bash run_figure4_base_sims.sh
+```
+2. Fit ramp functions to the empirical data
+```
+bash fit_ramp_to_empirical.sh
+```
+3. Obtain fit parameters to run the model for each species in the empirical data
+```
+bash get_empirical_simulation_parameters.sh
+```
+4. Run the flow model with a final set of fit parameters
+```
+bash run_figure4_with_fit_parameters.sh
+```
+5. Plot the results using the `plot_figure4.ipynb` notebook.

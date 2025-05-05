@@ -175,7 +175,7 @@ def main(args):
         # plt.savefig(emailfigs / f"data_fit {species}.png", bbox_inches="tight")
 
     #! save fits
-    outpath = outpath / "empirical_fits"
+    # outpath = outpath / "empirical_fits"
     outpath.mkdir(exist_ok=True, parents=True)
 
     pickle_save(outpath / "fitted_thresholds.pkl", fitted_thresholds)
