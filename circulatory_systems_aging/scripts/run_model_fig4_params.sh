@@ -1,1 +1,0 @@
-echo "running fig4 model with fit parameters"

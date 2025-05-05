@@ -1,4 +1,8 @@
 #!/bin/bash
+set -e
+source settings.sh
+
+cd ${PROJECT_DIR}
 
 for gamma in 0 1.0
 do    
@@ -7,7 +11,7 @@ do
     do
         echo ...running gamma = $gamma, diff = $diff
         python circulatory_flow_model.py --config figure3_config.ini \
-        --overrides General:outdir=flow_results/figure3/K2_Diff${diff}_gamma_${gamma} \
+        --overrides General:outdir=${OUTPUT_DIR}/figure3_results/K2_Diff${diff}_gamma_${gamma} \
         General:mixing_gamma=$gamma \
         Goods:diffusion=$diff \
         Toxins:diffusion=$diff
@@ -18,7 +22,7 @@ do
     do    
         echo ...running gamma = $gamma, vel = $vel
         python circulatory_flow_model.py --config figure3_config.ini \
-        --overrides General:outdir=flow_results/figure3/K2_Vel${vel}_gamma_${gamma} \
+        --overrides General:outdir=${OUTPUT_DIR}/figure3_results/K2_Vel${vel}_gamma_${gamma} \
         General:mixing_gamma=$gamma \
         General:velocity=$vel
     done
