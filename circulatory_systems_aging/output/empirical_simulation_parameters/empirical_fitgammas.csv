@@ -1,0 +1,22 @@
+K,Species,Gamma
+1,Homo sapiens (Japan2009Female),0.45017
+2,Homo sapiens (Japan2009Female),0.41167
+3,Homo sapiens (Japan2009Female),0.45172
+1,Poecillia reticulata,0.14144
+2,Poecillia reticulata,0.22861
+3,Poecillia reticulata,0.24137
+1,Fulmarus glacialoides,0.32982
+2,Fulmarus glacialoides,0.34419
+3,Fulmarus glacialoides,0.37556
+1,Orcinus orca,0.07475
+2,Orcinus orca,0.18599
+3,Orcinus orca,0.19151
+1,C. elegans N2,-1
+2,C. elegans N2,0.10066
+3,C. elegans N2,0.09152
+1,Ceratitis capitata,-1
+2,Ceratitis capitata,0.01350
+3,Ceratitis capitata,-1
+1,Pinus sylvestris,-1
+2,Pinus sylvestris,0.04604
+3,Pinus sylvestris,0.02750
