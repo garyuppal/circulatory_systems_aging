@@ -42,7 +42,7 @@ This repository includes two main computational models of aging:
     Simulates damage propagation in a circular network where cells communicate via cooperative (beneficial) or antagonistic (harmful) factors that spread (via diffusion and advection) and decay through the shared fluid.
 
 ### Model execution
-Each model is configured via an .ini file containing parameter values such as network structure, interaction strength, decay rates, and simulation time.
+Each model is configured via an configuration file containing parameter values such as network structure, interaction strength, decay rates, and simulation time.
 
 Each model is run with a configuration file passed giving model paramters.
 
@@ -51,13 +51,13 @@ Each model is run with a configuration file passed giving model paramters.
 To run the network model, use the following command:
 
 ```
-python network_model.py --config <config_file.ini>
+python network_model.py --config <config_file.cfg>
 ```
 
 #### Running the Circulatory Flow Model
 To run the circulatory flow model, use:
 ```
-python circulatory_flow_model.py --config <config_file.ini>
+python circulatory_flow_model.py --config <config_file.cfg>
 ```
 
 ## Running the analyses in the paper

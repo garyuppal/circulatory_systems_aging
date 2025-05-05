@@ -20,7 +20,7 @@ do
         runtime=${runtimes[i]}
         echo ...running gamma = $gamma, k = $k, runtime = $runtime
         # Run the Python script with the specified parameters
-        python circulatory_flow_model.py --config figure4_config.ini \
+        python circulatory_flow_model.py --config figure4_config.cfg \
         --overrides General:outdir=${OUTPUT_DIR}/figure4_base/K${k}_gamma_${gamma} \
         General:mixing_gamma=$gamma \
         General:runtime=$runtime \

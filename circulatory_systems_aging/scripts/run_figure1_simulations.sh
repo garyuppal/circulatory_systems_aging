@@ -21,7 +21,7 @@ for i in "${!networks[@]}"; do
             echo "Repair probability: $repair_prob, Initial non-functional: $initial_condition"
 
             # run the python script with the specified parameters
-            python network_model.py --config figure1_config.ini \
+            python network_model.py --config figure1_config.cfg \
                 --overrides General:outdir=${OUTPUT_DIR}/network_results/${network}_SFm_${sf_m_value}_ERp_${er_p_value}_repair_${repair_prob}_eta_${initial_condition} \
                 Network:type=$network \
                 Network:scale_free_m=$sf_m_value \

@@ -10,7 +10,7 @@ do
     do    
         echo ...running gamma = $gamma, k = $k
 
-        python circulatory_flow_model.py --config figure2_config.ini \
+        python circulatory_flow_model.py --config figure2_config.cfg \
         --overrides General:outdir=${OUTPUT_DIR}/figure2_results/K${k}_gamma_${gamma} \
         General:mixing_gamma=$gamma \
         Goods:hill_coefficient=$k \
