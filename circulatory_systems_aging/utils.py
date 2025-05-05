@@ -77,9 +77,58 @@ def visualize_flow_simulation(state, oidx=0, ghosts=True):
     ani = animation.FuncAnimation(fig, update, frames=gfield.shape[0], blit=False)
     plt.show()
 
+# todo: write wrapper for cacl mort for both enetwork and circulatory flow
+
 
 def calc_mort(res, w=11, p=1):
-    # TODO: use deltaT from std for w???
+    """
+    Calculate mortality from survival data.
+    
+    Parameters:
+    - res: dict containing model results
+    - w: window length for smoothing (default 11)
+    - p: polynomial order for smoothing (default 1)
+    
+    Returns:
+    - mort: calculated mortality rates
+    """
+    
+    if 'pop_v_time' in res:
+        return calc_mort_flow(res, w=w, p=p)
+    else:
+        return calc_mort_networks(res, w=w, p=p)
+
+
+def calc_mort_networks(res, w=11, p=1):
+    dtimes = res['dead_times']
+    surv = res['survival']
+    num_organisms = dtimes.shape[0]
+    times = np.arange(len(surv))
+    surv95_threshold = 0.05*num_organisms
+
+    tsurv = times[surv>surv95_threshold] # times upto t95 (where >95% alive)
+    if len(tsurv) == 0:
+        raise ValueError("no t95!")
+    t95 = len(tsurv)
+    dt = 1 #max(int(np.std(dtimes)*0.25),1)
+    s95 = surv[:t95]
+
+    if w > 0:
+        smoothed = savgol_filter(s95, window_length=w, polyorder=p)
+        dsurvdt = savgol_filter(s95, window_length=w, polyorder=p, deriv=1, delta=dt)
+        
+        mort = -dsurvdt/smoothed
+    else:
+        nt_mort = len(s95)-dt
+        mort = np.zeros(nt_mort)
+        for i in range(nt_mort):
+            mort[i] = -(s95[i+dt]-s95[i])/(s95[i]*dt)
+    normmortplot = mort / np.nanmean(mort)
+    t = np.linspace(0,1, len(mort))
+    return t, mort, normmortplot
+
+
+def calc_mort_flow(res, w=11, p=1):
     pvt = res["pop_v_time"]
     times = res["times"]
     age_delay = res["age_delay"]
@@ -107,9 +156,17 @@ def calc_mort(res, w=11, p=1):
 
     dt = (times[1] - times[0])
 
-    smoothed = savgol_filter(s95, window_length=w, polyorder=p)
-    dsurvdt = savgol_filter(s95, window_length=w, polyorder=p, deriv=1, delta=dt)
-    mort = -dsurvdt/smoothed
+    if w > 0:
+        smoothed = savgol_filter(s95, window_length=w, polyorder=p)
+        dsurvdt = savgol_filter(s95, window_length=w, polyorder=p, deriv=1, delta=dt)
+        
+        mort = -dsurvdt/smoothed
+    else:
+        nt_mort = len(s95)-1 #dt
+        mort = np.zeros(nt_mort)
+        for i in range(nt_mort):
+            mort[i] = -(s95[i+1]-s95[i])/(s95[i]*dt)
+
 
     normmortplot = mort / np.nanmean(mort)
     t = np.linspace(0,1, len(mort))

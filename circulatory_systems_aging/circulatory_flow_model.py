@@ -3,7 +3,7 @@ import numpy as np
 from utils import pickle_save, get_device
 from pathlib import Path
 import configparser
-
+from datetime import datetime
 
 
 class FlowAgingModelTorch:
@@ -238,6 +238,11 @@ class FlowAgingModelTorch:
 
 
 def run_model(config):
+    start_time = datetime.now()
+    seed = config.getint("General", "random_seed", fallback=42)
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+
     diff_goods = float(config["Goods"]["diffusion"])
     diff_toxins = float(config["Toxins"]["diffusion"])
     vel = float(config["General"]["velocity"])
@@ -258,11 +263,16 @@ def run_model(config):
     age_delay = config.getfloat("General", "age_delay", fallback=1.0)
     save_steps = config.getint("General", "save_interval", fallback=100)
     dt = config.getfloat("General", "dt", fallback=0.0001)
-    seed = config.getint("General", "seed", fallback=42)
 
     save_full = config.getboolean("General", "save_full", fallback=False)
 
-    torch.manual_seed(seed)
+    disable_GPU = config.getboolean("General", "disable_GPU", fallback=False)
+    if disable_GPU:
+        device = torch.device("cpu")
+    else:
+        # else use GPU if available
+        device = get_device()
+
     model = FlowAgingModelTorch(diff_goods,
                                 diff_toxins,
                                 vel,
@@ -275,7 +285,8 @@ def run_model(config):
                                 death_scale_alpha,
                                 mixing_gamma,
                                 n_pop=n_pop,
-                                dt=dt)
+                                dt=dt,
+                                device=device)
     
     calc_aging = True
     update_fields = True
@@ -302,8 +313,19 @@ def run_model(config):
 
     res, full_state = model.age(runtime, age_delay, save_steps, save_full=save_full, calc_aging=calc_aging, update_fields=update_fields)
     pickle_save(outpath / "results.pkl", res)
+    print("saved results to", outpath / "results.pkl")
     if full_state is not None:
         pickle_save(outpath / "full_state_v_time.pkl", full_state)
+
+    # get runtime
+    end_time = datetime.now()
+    elapsed = end_time - start_time
+    # Breakdown into days, hours, minutes, and seconds
+    days = elapsed.days
+    seconds = elapsed.seconds
+    hours, remainder = divmod(seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    print(f"Runtime: {days}d {hours}h {minutes}m {seconds}s")
 
 
 def main(args):

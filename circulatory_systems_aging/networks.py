@@ -1,6 +1,5 @@
 import networkx as nx
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 def get_connected_line_network(n):
@@ -85,6 +84,25 @@ def get_directed_SFN(n,m):
         other_nodes = np.random.choice(k, size=m, replace=False, p=indegrees[:k]/total)
         anet[k,other_nodes] = 1
     return anet
+
+
+def get_adjacency_matrix(config):
+    network_type = config["Network"]["type"]
+
+    if network_type == 'line':
+        return get_connected_line_network(config.getint('Network', 'num_nodes'))
+    elif network_type == 'star':
+        return get_central_node_network(config.getint('Network', 'num_nodes'))
+    elif network_type == 'branching':
+        return get_branching_network(config.getint('Network', 'branching_power'))
+    elif network_type == 'full':
+        return get_fully_connected_random_directional_network(config.getint('Network', 'num_nodes'))
+    elif network_type == 'erdos_reyni':
+        return get_erdos_reyni_random_network(config.getint('Network', 'num_nodes'), config.getfloat('Network', 'random_network_p'))
+    elif network_type == 'directed_SFN':
+        return get_directed_SFN(config.getint('Network', 'num_nodes'), config.getfloat('Network', 'scale_free_m'))
+    else:
+        raise ValueError(f"Unknown network type: {network_type}")
 
 
 def vis_network(ax, adjmat):

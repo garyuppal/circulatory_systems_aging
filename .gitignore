@@ -6,8 +6,16 @@ circulatory_systems_aging/K1_gamma_0/
 circulatory_systems_aging/K2_gamma_0/
 circulatory_systems_aging/results/
 circulatory_systems_aging/work/
+circulatory_systems_aging/network_results/
+circulatory_systems_aging/network_results_tests/
 circulatory_systems_aging/.nextflow*
 circulatory_systems_aging/run_fig2_cases_OGSCRIPT.sh
 circulatory_systems_aging/sim_paths.txt
 circulatory_systems_aging/.ipynb_checkpoints/
 circulatory_systems_aging/compute_mort_dt1_smoothed.ipynb
+circulatory_systems_aging/run_full_network_N-tests.sh
+circulatory_systems_aging/run_fig2_vs_N.sh
+circulatory_systems_aging/flow_results_T20/
+circulatory_systems_aging/_old
+circulatory_systems_aging/nextflow_scripts/
+circulatory_systems_aging/output/
